@@ -4,6 +4,7 @@ from inline_markdown import extract_title
 
 import os
 import shutil
+import sys
 
 def main():
     setup_public()
@@ -47,10 +48,16 @@ def setup_public():
     rel_template_path = os.path.join(os.path.dirname(__file__), "..", template_path)
     abs_template_path = os.path.abspath(rel_template_path)
     
-    dest_path = "public"
+    dest_path = "docs"
     rel_dest_path = os.path.join(os.path.dirname(__file__), "..", dest_path)
     abs_dest_path = os.path.abspath(rel_dest_path)
-    generate_pages_recursive(markdown_path, template_path, dest_path)
+    
+    args = sys.argv
+
+    basepath = "/"
+    if len(args) > 1:
+        basepath = f"{args[1]}"
+    generate_pages_recursive(markdown_path, template_path, dest_path, basepath)
 
 def read_file(path):
         with open(path, 'r', encoding='utf-8') as file:
@@ -58,7 +65,7 @@ def read_file(path):
         return content
 
                 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f'Generating page from {from_path} to {dest_path} using {template_path}')
     template = read_file(template_path)
     markdown = read_file(from_path)
@@ -67,12 +74,13 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(markdown)
     final_html = template.replace('{{ Title }}', title)
     final_html = final_html.replace('{{ Content }}', html)
+    final_html = final_html.replace('href="/', f'href="{basepath}')
+    final_html = final_html.replace('src="/', f'src="{basepath}')
     os.makedirs(os.path.dirname(dest_path), exist_ok=True) 
     with open(dest_path, 'w', encoding='utf-8') as file:
         file.write(final_html)
    
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
-    
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     def crawl_directory(dir_path_content, dest_dir_path):
         markdown_paths = []
         contents = os.listdir(dir_path_content)
@@ -93,12 +101,10 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         return markdown_paths
     all_paths = crawl_directory(dir_path_content, dest_dir_path)
     for tuple in all_paths:
-        generate_page(tuple[0], template_path, tuple[1])
+        generate_page(tuple[0], template_path, tuple[1], basepath)
         
 
-                
-                     
-    
+            
 
 if __name__ == "__main__":
     main()
