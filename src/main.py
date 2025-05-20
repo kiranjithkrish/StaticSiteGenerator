@@ -22,7 +22,7 @@ def copy_directory(source, destination):
             shutil.copy(source_path, destination_path)
 
 def cleanup_public():
-    public_path = "public"
+    public_path = "docs"
     rel_public_path = os.path.join(os.path.dirname(__file__), "..", public_path)
     abs_public_path = os.path.abspath(rel_public_path)
     if os.path.exists(abs_public_path):
@@ -74,8 +74,9 @@ def generate_page(from_path, template_path, dest_path, basepath):
     title = extract_title(markdown)
     final_html = template.replace('{{ Title }}', title)
     final_html = final_html.replace('{{ Content }}', html)
-    final_html = final_html.replace('href="/', f'href="{basepath}')
-    final_html = final_html.replace('src="/', f'src="{basepath}')
+    if basepath != "/":
+        final_html = final_html.replace('href="/', f'href="{basepath}')
+        final_html = final_html.replace('src="/', f'src="{basepath}')
     os.makedirs(os.path.dirname(dest_path), exist_ok=True) 
     with open(dest_path, 'w', encoding='utf-8') as file:
         file.write(final_html)
